@@ -117,8 +117,8 @@ Data Structures & Algorithms · Object-Oriented Programming · Database Manageme
 ## 📊 GitHub Analytics
 
 <div align="center">
-<img width="49%" src="https://github-readme-stats.vercel.app/api?username=Nitish-0710&show_icons=true&theme=tokyonight" />
-<img width="49%" src="https://github-readme-stats.vercel.app/api/top-langs/?username=Nitish-0710&layout=compact&theme=tokyonight" />
+<img width="49%" src="https://github-readme-stats.vercel.app/api?username=Nitish-0710&show_icons=true&theme=github_dark" />
+<img width="49%" src="https://github-readme-stats.vercel.app/api/top-langs/?username=Nitish-0710&layout=compact&theme=github_dark" />
 </div>
 
 ---
