@@ -6,6 +6,7 @@ text {
 }
 </style>
 
+
 <rect width="495" height="300" rx="10" fill="#0d1117"/>
 
 
@@ -23,13 +24,15 @@ Nitish Sahu's GitHub Stats
 </text>
 
 
+
 <text x="25" y="125" fill="#8b949e" font-size="16">
 🚀 Total Commits (all time):
 </text>
 
 <text x="260" y="125" fill="#ffffff" font-size="16">
-109
+111
 </text>
+
 
 
 <text x="25" y="165" fill="#8b949e" font-size="16">
@@ -37,8 +40,9 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="165" fill="#ffffff" font-size="16">
-210
+211
 </text>
+
 
 
 <text x="25" y="205" fill="#8b949e" font-size="16">
@@ -50,6 +54,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 
+
 <text x="25" y="245" fill="#8b949e" font-size="16">
 🔀 Total PRs:
 </text>
@@ -59,10 +64,10 @@ Nitish Sahu's GitHub Stats
 </text>
 
 
+
 <text x="25" y="280" fill="#8b949e" font-size="14">
 Updated automatically
 </text>
 
 
 </svg>
-EOF          
