@@ -1,24 +1,68 @@
-<svg width="500" height="220" xmlns="http://www.w3.org/2000/svg">
-  <rect width="500" height="220" rx="15" fill="#0d1117"/>
+<svg width="495" height="300" viewBox="0 0 495 300" xmlns="http://www.w3.org/2000/svg">
 
-  <text x="30" y="50" fill="white" font-size="24">
-    Nitish-0710 Stats
-  </text>
+<style>
+text {
+  font-family: Segoe UI, Ubuntu, Sans-Serif;
+}
+</style>
 
-  <text x="30" y="95" fill="#58a6ff" font-size="20">
-    🚀 Total Commits: 107
-  </text>
+<rect width="495" height="300" rx="10" fill="#0d1117"/>
 
-  <text x="30" y="130" fill="#58a6ff" font-size="20">
-    📈 Contributions: 209
-  </text>
 
-  <text x="30" y="165" fill="#58a6ff" font-size="20">
-    ⭐ Stars: 0
-  </text>
+<text x="25" y="45" fill="#ffffff" font-size="22" font-weight="700">
+Nitish Sahu's GitHub Stats
+</text>
 
-  <text x="30" y="200" fill="#8b949e" font-size="14">
-    Updated automatically
-  </text>
+
+<text x="25" y="85" fill="#8b949e" font-size="16">
+⭐ Total Stars Earned:
+</text>
+
+<text x="260" y="85" fill="#ffffff" font-size="16">
+0
+</text>
+
+
+<text x="25" y="125" fill="#8b949e" font-size="16">
+🚀 Total Commits (all time):
+</text>
+
+<text x="260" y="125" fill="#ffffff" font-size="16">
+109
+</text>
+
+
+<text x="25" y="165" fill="#8b949e" font-size="16">
+📈 Contributions (last year):
+</text>
+
+<text x="260" y="165" fill="#ffffff" font-size="16">
+210
+</text>
+
+
+<text x="25" y="205" fill="#8b949e" font-size="16">
+🔥 Total Commits (last year):
+</text>
+
+<text x="260" y="205" fill="#ffffff" font-size="16">
+89
+</text>
+
+
+<text x="25" y="245" fill="#8b949e" font-size="16">
+🔀 Total PRs:
+</text>
+
+<text x="260" y="245" fill="#ffffff" font-size="16">
+1
+</text>
+
+
+<text x="25" y="280" fill="#8b949e" font-size="14">
+Updated automatically
+</text>
+
 
 </svg>
+EOF          
