@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -22,6 +23,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         run: |
+
           COMMITS=0
 
           for repo in $(gh repo list Nitish-0710 --limit 100 --json name -q '.[].name'); do
@@ -33,6 +35,7 @@ jobs:
             COMMITS=$((COMMITS + COUNT))
 
           done
+
 
 
           CONTRIBUTIONS=$(gh api graphql -f query='
@@ -48,9 +51,43 @@ jobs:
           --jq '.data.user.contributionsCollection.contributionCalendar.totalContributions')
 
 
-          STARS=$(gh api user/starred \
-            --paginate \
-            --jq length | awk '{s+=$1} END {print s+0}')
+
+          LAST_YEAR_COMMITS=$(gh api graphql -f query='
+          {
+            user(login: "Nitish-0710") {
+              contributionsCollection {
+                totalCommitContributions
+              }
+            }
+          }' \
+          --jq '.data.user.contributionsCollection.totalCommitContributions')
+
+
+
+          STARS=$(gh api graphql -f query='
+          {
+            user(login: "Nitish-0710") {
+              repositories(first: 100) {
+                nodes {
+                  stargazerCount
+                }
+              }
+            }
+          }' \
+          --jq '[.data.user.repositories.nodes[].stargazerCount] | add')
+
+
+
+          PRS=$(gh api graphql -f query='
+          {
+            user(login: "Nitish-0710") {
+              pullRequests {
+                totalCount
+              }
+            }
+          }' \
+          --jq '.data.user.pullRequests.totalCount')
+
 
 
           cat > .github/profile/stats.json <<EOF
@@ -58,6 +95,8 @@ jobs:
             "commits": $COMMITS,
             "contributions": $CONTRIBUTIONS,
             "stars": $STARS,
+            "lastYearCommits": $LAST_YEAR_COMMITS,
+            "prs": $PRS,
             "updated": "$(date +%Y-%m-%d)"
           }
           EOF
@@ -65,13 +104,22 @@ jobs:
 
 
       - name: Generate SVG card
+
         run: |
 
           DATA=$(cat .github/profile/stats.json)
 
+
           COMMITS=$(echo $DATA | jq '.commits')
+
           CONTRIBUTIONS=$(echo $DATA | jq '.contributions')
+
           STARS=$(echo $DATA | jq '.stars')
+
+          LAST_YEAR_COMMITS=$(echo $DATA | jq '.lastYearCommits')
+
+          PRS=$(echo $DATA | jq '.prs')
+
 
 
           cat > .github/profile/card.svg <<EOF
@@ -87,9 +135,11 @@ jobs:
           <rect width="495" height="300" rx="10" fill="#0d1117"/>
           
           
+          
           <text x="25" y="45" fill="#ffffff" font-size="22" font-weight="700">
           Nitish Sahu's GitHub Stats
           </text>
+          
           
           
           <text x="25" y="85" fill="#8b949e" font-size="16">
@@ -127,7 +177,7 @@ jobs:
           </text>
           
           <text x="260" y="205" fill="#ffffff" font-size="16">
-          89
+          $LAST_YEAR_COMMITS
           </text>
           
           
@@ -137,7 +187,7 @@ jobs:
           </text>
           
           <text x="260" y="245" fill="#ffffff" font-size="16">
-          1
+          $PRS
           </text>
           
           
@@ -153,6 +203,7 @@ jobs:
 
 
       - name: Commit updates
+
         run: |
 
           git config user.name "github-actions"
