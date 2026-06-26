@@ -16,19 +16,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+
       - name: Generate stats data
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         run: |
           COMMITS=0
 
           for repo in $(gh repo list Nitish-0710 --limit 100 --json name -q '.[].name'); do
+
             COUNT=$(gh api repos/Nitish-0710/$repo/commits \
               --paginate \
               --jq '.[].sha' | wc -l)
 
             COMMITS=$((COMMITS + COUNT))
+
           done
+
 
           CONTRIBUTIONS=$(gh api graphql -f query='
           {
@@ -58,8 +63,10 @@ jobs:
           EOF
 
 
+
       - name: Generate SVG card
         run: |
+
           DATA=$(cat .github/profile/stats.json)
 
           COMMITS=$(echo $DATA | jq '.commits')
@@ -75,6 +82,7 @@ jobs:
             font-family: Segoe UI, Ubuntu, Sans-Serif;
           }
           </style>
+          
           
           <rect width="495" height="300" rx="10" fill="#0d1117"/>
           
@@ -93,6 +101,7 @@ jobs:
           </text>
           
           
+          
           <text x="25" y="125" fill="#8b949e" font-size="16">
           🚀 Total Commits (all time):
           </text>
@@ -100,6 +109,7 @@ jobs:
           <text x="260" y="125" fill="#ffffff" font-size="16">
           $COMMITS
           </text>
+          
           
           
           <text x="25" y="165" fill="#8b949e" font-size="16">
@@ -111,6 +121,7 @@ jobs:
           </text>
           
           
+          
           <text x="25" y="205" fill="#8b949e" font-size="16">
           🔥 Total Commits (last year):
           </text>
@@ -118,6 +129,7 @@ jobs:
           <text x="260" y="205" fill="#ffffff" font-size="16">
           89
           </text>
+          
           
           
           <text x="25" y="245" fill="#8b949e" font-size="16">
@@ -129,22 +141,29 @@ jobs:
           </text>
           
           
+          
           <text x="25" y="280" fill="#8b949e" font-size="14">
           Updated automatically
           </text>
           
           
           </svg>
-          EOF          
+          EOF
+
 
 
       - name: Commit updates
         run: |
+
           git config user.name "github-actions"
+
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add .
 
-          git commit -m "Update stats card" || exit 0
+          git add .github/profile/card.svg .github/profile/stats.json
+
+
+          git commit -m "Update stats card" || echo "No changes"
+
 
           git push
