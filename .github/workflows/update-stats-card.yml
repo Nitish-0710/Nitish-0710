@@ -21,21 +21,17 @@ jobs:
       - name: Generate stats data
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
         run: |
 
           COMMITS=0
 
           for repo in $(gh repo list Nitish-0710 --limit 100 --json name -q '.[].name'); do
-
             COUNT=$(gh api repos/Nitish-0710/$repo/commits \
               --paginate \
               --jq '.[].sha' | wc -l)
 
             COMMITS=$((COMMITS + COUNT))
-
           done
-
 
 
           CONTRIBUTIONS=$(gh api graphql -f query='
@@ -47,21 +43,7 @@ jobs:
                 }
               }
             }
-          }' \
-          --jq '.data.user.contributionsCollection.contributionCalendar.totalContributions')
-
-
-
-          LAST_YEAR_COMMITS=$(gh api graphql -f query='
-          {
-            user(login: "Nitish-0710") {
-              contributionsCollection {
-                totalCommitContributions
-              }
-            }
-          }' \
-          --jq '.data.user.contributionsCollection.totalCommitContributions')
-
+          }' --jq '.data.user.contributionsCollection.contributionCalendar.totalContributions')
 
 
           STARS=$(gh api graphql -f query='
@@ -73,9 +55,7 @@ jobs:
                 }
               }
             }
-          }' \
-          --jq '[.data.user.repositories.nodes[].stargazerCount] | add')
-
+          }' --jq '[.data.user.repositories.nodes[].stargazerCount] | add')
 
 
           PRS=$(gh api graphql -f query='
@@ -85,9 +65,50 @@ jobs:
                 totalCount
               }
             }
-          }' \
-          --jq '.data.user.pullRequests.totalCount')
+          }' --jq '.data.user.pullRequests.totalCount')
 
+
+          # =========================
+          # SCORE ENGINE (GRS STYLE)
+          # =========================
+
+          ACTIVITY=$((COMMITS + CONTRIBUTIONS))
+
+          ACTIVITY_SCORE=$((ACTIVITY * 50 / 1000))
+          [ "$ACTIVITY_SCORE" -gt 50 ] && ACTIVITY_SCORE=50
+
+          IMPACT_SCORE=$((STARS * 30 / 100))
+          [ "$IMPACT_SCORE" -gt 30 ] && IMPACT_SCORE=30
+
+          ENGAGEMENT_SCORE=$((PRS * 20 / 20))
+          [ "$ENGAGEMENT_SCORE" -gt 20 ] && ENGAGEMENT_SCORE=20
+
+          SCORE=$((ACTIVITY_SCORE + IMPACT_SCORE + ENGAGEMENT_SCORE))
+
+          if [ "$SCORE" -gt 100 ]; then
+            PERCENT=100
+          else
+            PERCENT=$SCORE
+          fi
+
+
+          # =========================
+          # GRADE ENGINE
+          # =========================
+
+          if [ "$PERCENT" -ge 90 ]; then
+            GRADE="S"
+          elif [ "$PERCENT" -ge 80 ]; then
+            GRADE="A"
+          elif [ "$PERCENT" -ge 70 ]; then
+            GRADE="B"
+          elif [ "$PERCENT" -ge 60 ]; then
+            GRADE="C"
+          elif [ "$PERCENT" -ge 40 ]; then
+            GRADE="D"
+          else
+            GRADE="F"
+          fi
 
 
           cat > .github/profile/stats.json <<EOF
@@ -95,126 +116,115 @@ jobs:
             "commits": $COMMITS,
             "contributions": $CONTRIBUTIONS,
             "stars": $STARS,
-            "lastYearCommits": $LAST_YEAR_COMMITS,
             "prs": $PRS,
+            "score": $SCORE,
+            "percent": $PERCENT,
+            "grade": "$GRADE",
             "updated": "$(date +%Y-%m-%d)"
           }
           EOF
 
 
-
       - name: Generate SVG card
-
         run: |
 
           DATA=$(cat .github/profile/stats.json)
 
+          COMMITS=$(echo "$DATA" | jq '.commits')
+          CONTRIBUTIONS=$(echo "$DATA" | jq '.contributions')
+          STARS=$(echo "$DATA" | jq '.stars')
+          PRS=$(echo "$DATA" | jq '.prs')
+          GRADE=$(echo "$DATA" | jq -r '.grade')
+          PERCENT=$(echo "$DATA" | jq '.percent')
 
-          COMMITS=$(echo $DATA | jq '.commits')
+          OFFSET=$(awk "BEGIN {print 213 - ($PERCENT * 213 / 100)}")
+          OFFSET=${OFFSET%.*}
 
-          CONTRIBUTIONS=$(echo $DATA | jq '.contributions')
-
-          STARS=$(echo $DATA | jq '.stars')
-
-          LAST_YEAR_COMMITS=$(echo $DATA | jq '.lastYearCommits')
-
-          PRS=$(echo $DATA | jq '.prs')
-
+          if [ "$PERCENT" -ge 90 ]; then COLOR="#00ffae"
+          elif [ "$PERCENT" -ge 80 ]; then COLOR="#2ea043"
+          elif [ "$PERCENT" -ge 70 ]; then COLOR="#58a6ff"
+          elif [ "$PERCENT" -ge 60 ]; then COLOR="#f1e05a"
+          elif [ "$PERCENT" -ge 40 ]; then COLOR="#fb8500"
+          else COLOR="#f85149"
+          fi
 
 
           cat > .github/profile/card.svg <<EOF
-          <svg width="495" height="300" viewBox="0 0 495 300" xmlns="http://www.w3.org/2000/svg">
+          <svg width="495" height="195" viewBox="0 0 495 195" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
           
           <style>
-          text {
-            font-family: Segoe UI, Ubuntu, Sans-Serif;
-          }
+            text {
+              font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Ubuntu, sans-serif;
+            }
+          
+            .title { fill: #58a6ff; font-size: 15px; font-weight: 600; }
+            .label { fill: #8b949e; font-size: 12px; }
+            .value { fill: #c9d1d9; font-size: 13px; font-weight: 600; }
           </style>
           
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#58a6ff"/>
+              <stop offset="100%" stop-color="#2ea043"/>
+            </linearGradient>
+          </defs>
           
-          <rect x="0.5" y="0.5" width="494" height="299" rx="10" fill="#0d1117" stroke="#ffffff" stroke-width="1" />
+          <rect x="0.5" y="0.5" width="494" height="194" rx="8"
+          fill="#0d1117"
+          stroke="#30363d"
+          filter="drop-shadow(0px 0px 6px rgba(88,166,255,0.15))"/>
           
+          <!-- Title -->
+          <text x="18" y="28" class="title">Nitish Sahu's GitHub Stats</text>
           
+          <!-- Stats -->
+          <text x="18" y="62" class="label">Stars</text>
+          <text x="180" y="62" class="value">$STARS</text>
           
-          <text x="25" y="45" fill="#ffffff" font-size="22" font-weight="700">
-          Nitish Sahu's GitHub Stats
-          </text>
+          <text x="18" y="92" class="label">Commits</text>
+          <text x="180" y="92" class="value">$COMMITS</text>
           
+          <text x="18" y="122" class="label">Contributions</text>
+          <text x="180" y="122" class="value">$CONTRIBUTIONS</text>
           
+          <text x="18" y="152" class="label">PRs</text>
+          <text x="180" y="152" class="value">$PRS</text>
           
-          <text x="25" y="85" fill="#8b949e" font-size="16">
-          ⭐ Total Stars Earned:
-          </text>
+          <!-- Grade Circle -->
+          <g transform="translate(420, 95)">
           
-          <text x="260" y="85" fill="#ffffff" font-size="16">
-          $STARS
-          </text>
+            <circle r="34" fill="none" stroke="#30363d" stroke-width="6"/>
           
+            <circle r="34"
+                    fill="none"
+                    stroke="url(#grad)"
+                    stroke-width="6"
+                    stroke-linecap="round"
+                    transform="rotate(-90)"
+                    stroke-dasharray="213"
+                    stroke-dashoffset="$OFFSET"/>
           
+            <text text-anchor="middle"
+                  dy="7"
+                  font-size="18"
+                  font-weight="700"
+                  fill="#e6edf3">
+              $GRADE
+            </text>
           
-          <text x="25" y="125" fill="#8b949e" font-size="16">
-          🚀 Total Commits (all time):
-          </text>
-          
-          <text x="260" y="125" fill="#ffffff" font-size="16">
-          $COMMITS
-          </text>
-          
-          
-          
-          <text x="25" y="165" fill="#8b949e" font-size="16">
-          📈 Contributions (last year):
-          </text>
-          
-          <text x="260" y="165" fill="#ffffff" font-size="16">
-          $CONTRIBUTIONS
-          </text>
-          
-          
-          
-          <text x="25" y="205" fill="#8b949e" font-size="16">
-          🔥 Total Commits (last year):
-          </text>
-          
-          <text x="260" y="205" fill="#ffffff" font-size="16">
-          $LAST_YEAR_COMMITS
-          </text>
-          
-          
-          
-          <text x="25" y="245" fill="#8b949e" font-size="16">
-          🔀 Total PRs:
-          </text>
-          
-          <text x="260" y="245" fill="#ffffff" font-size="16">
-          $PRS
-          </text>
-          
-          
-          
-          <text x="25" y="280" fill="#8b949e" font-size="14">
-          Updated automatically
-          </text>
-          
+          </g>
           
           </svg>
           EOF
 
 
-
       - name: Commit updates
-
         run: |
 
           git config user.name "github-actions"
-
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
 
           git add .github/profile/card.svg .github/profile/stats.json
 
-
           git commit -m "Update stats card" || echo "No changes"
-
-
           git push
