@@ -1,75 +1,65 @@
-<svg width="495" height="300" viewBox="0 0 495 300" xmlns="http://www.w3.org/2000/svg">
+<svg width="495" height="195" viewBox="0 0 495 195" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
 
 <style>
-text {
-  font-family: Segoe UI, Ubuntu, Sans-Serif;
-}
+  text {
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Ubuntu, sans-serif;
+  }
+
+  .title { fill: #58a6ff; font-size: 15px; font-weight: 600; }
+  .label { fill: #8b949e; font-size: 12px; }
+  .value { fill: #c9d1d9; font-size: 13px; font-weight: 600; }
 </style>
 
+<defs>
+  <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#58a6ff"/>
+    <stop offset="100%" stop-color="#2ea043"/>
+  </linearGradient>
+</defs>
 
-<rect x="0.5" y="0.5" width="494" height="299" rx="10" fill="#0d1117" stroke="#ffffff" stroke-width="1" />
+<rect x="0.5" y="0.5" width="494" height="194" rx="8"
+fill="#0d1117"
+stroke="#30363d"
+filter="drop-shadow(0px 0px 6px rgba(88,166,255,0.15))"/>
 
+<!-- Title -->
+<text x="18" y="28" class="title">Nitish Sahu's GitHub Stats</text>
 
+<!-- Stats -->
+<text x="18" y="62" class="label">Stars</text>
+<text x="180" y="62" class="value">7</text>
 
-<text x="25" y="45" fill="#ffffff" font-size="22" font-weight="700">
-Nitish Sahu's GitHub Stats
-</text>
+<text x="18" y="92" class="label">Commits</text>
+<text x="180" y="92" class="value">121</text>
 
+<text x="18" y="122" class="label">Contributions</text>
+<text x="180" y="122" class="value">218</text>
 
+<text x="18" y="152" class="label">PRs</text>
+<text x="180" y="152" class="value">1</text>
 
-<text x="25" y="85" fill="#8b949e" font-size="16">
-⭐ Total Stars Earned:
-</text>
+<!-- Grade Circle -->
+<g transform="translate(420, 95)">
 
-<text x="260" y="85" fill="#ffffff" font-size="16">
-7
-</text>
+  <circle r="34" fill="none" stroke="#30363d" stroke-width="6"/>
 
+  <circle r="34"
+          fill="none"
+          stroke="url(#grad)"
+          stroke-width="6"
+          stroke-linecap="round"
+          transform="rotate(-90)"
+          stroke-dasharray="213"
+          stroke-dashoffset="172"/>
 
+  <text text-anchor="middle"
+        dy="7"
+        font-size="18"
+        font-weight="700"
+        fill="#e6edf3">
+    F
+  </text>
 
-<text x="25" y="125" fill="#8b949e" font-size="16">
-🚀 Total Commits (all time):
-</text>
-
-<text x="260" y="125" fill="#ffffff" font-size="16">
-119
-</text>
-
-
-
-<text x="25" y="165" fill="#8b949e" font-size="16">
-📈 Contributions (last year):
-</text>
-
-<text x="260" y="165" fill="#ffffff" font-size="16">
-217
-</text>
-
-
-
-<text x="25" y="205" fill="#8b949e" font-size="16">
-🔥 Total Commits (last year):
-</text>
-
-<text x="260" y="205" fill="#ffffff" font-size="16">
-100
-</text>
-
-
-
-<text x="25" y="245" fill="#8b949e" font-size="16">
-🔀 Total PRs:
-</text>
-
-<text x="260" y="245" fill="#ffffff" font-size="16">
-1
-</text>
-
-
-
-<text x="25" y="280" fill="#8b949e" font-size="14">
-Updated automatically
-</text>
-
+</g>
 
 </svg>
