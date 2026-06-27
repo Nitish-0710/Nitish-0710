@@ -10,9 +10,11 @@ text {
 <rect width="495" height="300" rx="10" fill="#0d1117"/>
 
 
+
 <text x="25" y="45" fill="#ffffff" font-size="22" font-weight="700">
 Nitish Sahu's GitHub Stats
 </text>
+
 
 
 <text x="25" y="85" fill="#8b949e" font-size="16">
@@ -20,7 +22,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="85" fill="#ffffff" font-size="16">
-0
+7
 </text>
 
 
@@ -30,7 +32,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="125" fill="#ffffff" font-size="16">
-111
+117
 </text>
 
 
@@ -40,7 +42,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="165" fill="#ffffff" font-size="16">
-211
+216
 </text>
 
 
@@ -50,7 +52,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="205" fill="#ffffff" font-size="16">
-89
+99
 </text>
 
 
