@@ -117,7 +117,7 @@ Data Structures & Algorithms · Object-Oriented Programming · Database Manageme
 ## 📊 GitHub Analytics
 
 <div align="center">
-<img src=".github/profile/card.svg" width="530"/>
+<img src=".github/profile/card.svg" width="53%"/>
 <img width="42%" src="https://github-readme-stats.vercel.app/api/top-langs/?username=Nitish-0710&layout=compact&theme=github_dark" />
 
 <br>
