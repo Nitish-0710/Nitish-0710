@@ -1,4 +1,4 @@
-name: Update Custom Stats Card
+name: Update Stats Card
 
 on:
   schedule:
@@ -17,23 +17,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-
       - name: Generate stats data
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
 
+          # ── Commits across all repos ──────────────────────────────────
           COMMITS=0
-
           for repo in $(gh repo list Nitish-0710 --limit 100 --json name -q '.[].name'); do
             COUNT=$(gh api repos/Nitish-0710/$repo/commits \
               --paginate \
-              --jq '.[].sha' | wc -l)
-
+              --jq '.[].sha' 2>/dev/null | wc -l)
             COMMITS=$((COMMITS + COUNT))
           done
 
-
+          # ── Total contributions (calendar) ────────────────────────────
           CONTRIBUTIONS=$(gh api graphql -f query='
           {
             user(login: "Nitish-0710") {
@@ -45,71 +43,37 @@ jobs:
             }
           }' --jq '.data.user.contributionsCollection.contributionCalendar.totalContributions')
 
-
+          # ── Stars received ────────────────────────────────────────────
           STARS=$(gh api graphql -f query='
           {
             user(login: "Nitish-0710") {
               repositories(first: 100) {
-                nodes {
-                  stargazerCount
-                }
+                nodes { stargazerCount }
               }
             }
-          }' --jq '[.data.user.repositories.nodes[].stargazerCount] | add')
+          }' --jq '[.data.user.repositories.nodes[].stargazerCount] | add // 0')
 
-
+          # ── Pull requests ─────────────────────────────────────────────
           PRS=$(gh api graphql -f query='
           {
             user(login: "Nitish-0710") {
-              pullRequests {
-                totalCount
-              }
+              pullRequests { totalCount }
             }
           }' --jq '.data.user.pullRequests.totalCount')
 
+          # ── Repos count ───────────────────────────────────────────────
+          REPOS=$(gh api graphql -f query='
+          {
+            user(login: "Nitish-0710") {
+              repositories(first: 100, ownerAffiliations: OWNER) {
+                totalCount
+              }
+            }
+          }' --jq '.data.user.repositories.totalCount')
 
-          # =========================
-          # SCORE ENGINE (GRS STYLE)
-          # =========================
+          UPDATED=$(date +"%b %d, %Y")
 
-          ACTIVITY=$((COMMITS + CONTRIBUTIONS))
-
-          ACTIVITY_SCORE=$((ACTIVITY * 50 / 1000))
-          [ "$ACTIVITY_SCORE" -gt 50 ] && ACTIVITY_SCORE=50
-
-          IMPACT_SCORE=$((STARS * 30 / 100))
-          [ "$IMPACT_SCORE" -gt 30 ] && IMPACT_SCORE=30
-
-          ENGAGEMENT_SCORE=$((PRS * 20 / 20))
-          [ "$ENGAGEMENT_SCORE" -gt 20 ] && ENGAGEMENT_SCORE=20
-
-          SCORE=$((ACTIVITY_SCORE + IMPACT_SCORE + ENGAGEMENT_SCORE))
-
-          if [ "$SCORE" -gt 100 ]; then
-            PERCENT=100
-          else
-            PERCENT=$SCORE
-          fi
-
-
-          # =========================
-          # GRADE ENGINE
-          # =========================
-
-          if [ "$PERCENT" -ge 90 ]; then
-            GRADE="S"
-          elif [ "$PERCENT" -ge 80 ]; then
-            GRADE="A"
-          elif [ "$PERCENT" -ge 70 ]; then
-            GRADE="B"
-          elif [ "$PERCENT" -ge 60 ]; then
-            GRADE="C"
-          elif [ "$PERCENT" -ge 40 ]; then
-            GRADE="D"
-          else
-            GRADE="F"
-          fi
-
+          mkdir -p .github/profile
 
           cat > .github/profile/stats.json <<EOF
           {
@@ -117,114 +81,144 @@ jobs:
             "contributions": $CONTRIBUTIONS,
             "stars": $STARS,
             "prs": $PRS,
-            "score": $SCORE,
-            "percent": $PERCENT,
-            "grade": "$GRADE",
-            "updated": "$(date +%Y-%m-%d)"
+            "repos": $REPOS,
+            "updated": "$UPDATED"
           }
           EOF
-
 
       - name: Generate SVG card
         run: |
 
           DATA=$(cat .github/profile/stats.json)
 
-          COMMITS=$(echo "$DATA" | jq '.commits')
+          COMMITS=$(echo "$DATA"       | jq '.commits')
           CONTRIBUTIONS=$(echo "$DATA" | jq '.contributions')
-          STARS=$(echo "$DATA" | jq '.stars')
-          PRS=$(echo "$DATA" | jq '.prs')
-          GRADE=$(echo "$DATA" | jq -r '.grade')
-          PERCENT=$(echo "$DATA" | jq '.percent')
+          STARS=$(echo "$DATA"         | jq '.stars')
+          PRS=$(echo "$DATA"           | jq '.prs')
+          REPOS=$(echo "$DATA"         | jq '.repos')
+          UPDATED=$(echo "$DATA"       | jq -r '.updated')
 
-          OFFSET=$(awk "BEGIN {print 213 - ($PERCENT * 213 / 100)}")
-          OFFSET=${OFFSET%.*}
-
-          if [ "$PERCENT" -ge 90 ]; then COLOR="#00ffae"
-          elif [ "$PERCENT" -ge 80 ]; then COLOR="#2ea043"
-          elif [ "$PERCENT" -ge 70 ]; then COLOR="#58a6ff"
-          elif [ "$PERCENT" -ge 60 ]; then COLOR="#f1e05a"
-          elif [ "$PERCENT" -ge 40 ]; then COLOR="#fb8500"
-          else COLOR="#f85149"
-          fi
-
+          # ── Contribution bar (0–100%) ─────────────────────────────────
+          # Cap at 1000 contributions = 100%
+          BAR_PERCENT=$(awk "BEGIN {
+            p = $CONTRIBUTIONS * 100 / 1000;
+            if (p > 100) p = 100;
+            printf \"%d\", p
+          }")
+          BAR_WIDTH=$(awk "BEGIN { printf \"%d\", $BAR_PERCENT * 3.57 }")
 
           cat > .github/profile/card.svg <<EOF
-          <svg width="495" height="195" viewBox="0 0 495 195" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
-          
-          <style>
-            text {
-              font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Ubuntu, sans-serif;
-            }
-          
-            .title { fill: #58a6ff; font-size: 15px; font-weight: 600; }
-            .label { fill: #8b949e; font-size: 12px; }
-            .value { fill: #c9d1d9; font-size: 13px; font-weight: 600; }
-          </style>
-          
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#58a6ff"/>
-              <stop offset="100%" stop-color="#2ea043"/>
-            </linearGradient>
-          </defs>
-          
-          <rect x="0.5" y="0.5" width="494" height="194" rx="8"
-          fill="#0d1117"
-          stroke="#30363d"
-          filter="drop-shadow(0px 0px 6px rgba(88,166,255,0.15))"/>
-          
-          <!-- Title -->
-          <text x="18" y="28" class="title">Nitish Sahu's GitHub Stats</text>
-          
-          <!-- Stats -->
-          <text x="18" y="62" class="label">Stars</text>
-          <text x="180" y="62" class="value">$STARS</text>
-          
-          <text x="18" y="92" class="label">Commits</text>
-          <text x="180" y="92" class="value">$COMMITS</text>
-          
-          <text x="18" y="122" class="label">Contributions</text>
-          <text x="180" y="122" class="value">$CONTRIBUTIONS</text>
-          
-          <text x="18" y="152" class="label">PRs</text>
-          <text x="180" y="152" class="value">$PRS</text>
-          
-          <!-- Grade Circle -->
-          <g transform="translate(420, 95)">
-          
-            <circle r="34" fill="none" stroke="#30363d" stroke-width="6"/>
-          
-            <circle r="34"
-                    fill="none"
-                    stroke="url(#grad)"
-                    stroke-width="6"
-                    stroke-linecap="round"
-                    transform="rotate(-90)"
-                    stroke-dasharray="213"
-                    stroke-dashoffset="$OFFSET"/>
-          
-            <text text-anchor="middle"
-                  dy="7"
-                  font-size="18"
-                  font-weight="700"
-                  fill="#e6edf3">
-              $GRADE
+          <svg width="495" height="220" viewBox="0 0 495 220"
+               xmlns="http://www.w3.org/2000/svg"
+               shape-rendering="geometricPrecision">
+
+            <!-- Background -->
+            <rect x="0.5" y="0.5" width="494" height="219" rx="8"
+                  fill="#0d1117" stroke="#30363d"/>
+
+            <!-- Title -->
+            <text x="18" y="30"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="15" font-weight="600" fill="#58a6ff">
+              Nitish Sahu's GitHub Stats
             </text>
-          
-          </g>
-          
+
+            <!-- Divider -->
+            <line x1="18" y1="40" x2="477" y2="40" stroke="#30363d" stroke-width="1"/>
+
+            <!-- ── Left column: stat rows ── -->
+
+            <!-- Stars -->
+            <text x="18" y="68"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" fill="#8b949e">⭐  Stars Earned</text>
+            <text x="300" y="68"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" font-weight="600" fill="#e6edf3">$STARS</text>
+
+            <!-- Commits -->
+            <text x="18" y="96"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" fill="#8b949e">💻  Total Commits</text>
+            <text x="300" y="96"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" font-weight="600" fill="#e6edf3">$COMMITS</text>
+
+            <!-- Contributions -->
+            <text x="18" y="124"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" fill="#8b949e">📅  Contributions</text>
+            <text x="300" y="124"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" font-weight="600" fill="#e6edf3">$CONTRIBUTIONS</text>
+
+            <!-- Pull Requests -->
+            <text x="18" y="152"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" fill="#8b949e">🔀  Pull Requests</text>
+            <text x="300" y="152"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" font-weight="600" fill="#e6edf3">$PRS</text>
+
+            <!-- Repos -->
+            <text x="18" y="180"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" fill="#8b949e">📦  Public Repos</text>
+            <text x="300" y="180"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="13" font-weight="600" fill="#e6edf3">$REPOS</text>
+
+            <!-- ── Right panel: Status badge ── -->
+            <rect x="345" y="55" width="132" height="110" rx="6"
+                  fill="#161b22" stroke="#238636" stroke-width="1"/>
+
+            <circle cx="362" cy="79" r="5" fill="#3fb950"/>
+            <text x="373" y="83"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="11" font-weight="600" fill="#3fb950">Open To</text>
+
+            <text x="355" y="104"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="11" fill="#c9d1d9">SDE Internships</text>
+            <text x="355" y="121"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="11" fill="#c9d1d9">ML Engineer Roles</text>
+            <text x="355" y="138"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="11" fill="#c9d1d9">Full Stack Roles</text>
+
+            <text x="355" y="158"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="10" fill="#58a6ff">MERN · PyTorch · YOLO</text>
+
+            <!-- ── Contribution bar ── -->
+            <text x="18" y="200"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="10" fill="#8b949e">Contribution Activity</text>
+            <text x="310" y="200"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="10" fill="#8b949e">$BAR_PERCENT%</text>
+
+            <!-- Bar track -->
+            <rect x="18" y="205" width="357" height="6" rx="3" fill="#21262d"/>
+            <!-- Bar fill -->
+            <rect x="18" y="205" width="$BAR_WIDTH" height="6" rx="3" fill="#58a6ff"/>
+
+            <!-- Updated timestamp -->
+            <text x="477" y="214"
+                  text-anchor="end"
+                  font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Ubuntu,sans-serif"
+                  font-size="9" fill="#484f58">Updated $UPDATED</text>
+
           </svg>
           EOF
 
-
       - name: Commit updates
         run: |
-
           git config user.name "github-actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add .github/profile/card.svg .github/profile/stats.json
 
-          git commit -m "Update stats card" || echo "No changes"
+          git commit -m "chore: update stats card [$UPDATED]" || echo "No changes to commit"
           git push
