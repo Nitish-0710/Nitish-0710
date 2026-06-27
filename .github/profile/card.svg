@@ -7,7 +7,7 @@ text {
 </style>
 
 
-<rect width="495" height="300" rx="10" fill="#0d1117"/>
+<rect x="0.5" y="0.5" width="494" height="299" rx="10" fill="#0d1117" stroke="#ffffff" stroke-width="1" />
 
 
 
@@ -32,7 +32,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="125" fill="#ffffff" font-size="16">
-117
+119
 </text>
 
 
@@ -42,7 +42,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="165" fill="#ffffff" font-size="16">
-216
+217
 </text>
 
 
@@ -52,7 +52,7 @@ Nitish Sahu's GitHub Stats
 </text>
 
 <text x="260" y="205" fill="#ffffff" font-size="16">
-99
+100
 </text>
 
 
