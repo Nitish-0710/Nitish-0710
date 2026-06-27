@@ -132,7 +132,7 @@ jobs:
           </style>
           
           
-          <rect width="495" height="300" rx="10" fill="#0d1117"/>
+          <rect x="0.5" y="0.5" width="494" height="299" rx="10" fill="#0d1117" stroke="#ffffff" stroke-width="1" />
           
           
           
